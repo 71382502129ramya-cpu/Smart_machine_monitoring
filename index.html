@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Industrial Machine Monitoring | Demo</title>
+  <style>
+    :root {
+      --bg: #0b1220; --panel: #111c2e; --panel2: #162338; --border: #26364d;
+      --text: #eef4ff; --muted: #9aabc3; --green: #22c55e; --yellow: #facc15;
+      --red: #f04444; --blue: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif; background: radial-gradient(circle at 15% 0%, #162642 0, var(--bg) 42%); color: var(--text); }
+    .wrap { max-width: 1180px; margin: auto; padding: 28px 20px 40px; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap; margin-bottom: 24px; }
+    .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 800; }
+    h1 { margin: 7px 0 8px; font-size: clamp(25px, 4vw, 36px); letter-spacing: -.035em; }
+    .sub { color: var(--muted); margin: 0; line-height: 1.55; max-width: 720px; }
+    .demo-pill { display: inline-flex; align-items: center; gap: 9px; border: 1px solid #775d22; background: #352b15; color: #ffe29a; border-radius: 999px; padding: 10px 14px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 12px currentColor; }
+    .banner { border: 1px solid #775d22; background: #211d14; color: #f8df9d; border-radius: 12px; padding: 12px 15px; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
+    .banner strong { color: #fff1c4; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .card { background: linear-gradient(145deg, rgba(22,35,56,.96), rgba(15,25,42,.96)); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+    .metric-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 13px; }
+    .metric-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #203653; color: #9cc8ff; font-size: 17px; }
+    .value { font-size: 32px; font-weight: 750; letter-spacing: -.04em; margin: 18px 0 5px; }
+    .unit { color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+    .hint { color: var(--muted); font-size: 12px; }
+    .main-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 14px; margin-top: 14px; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 15px; font-size: 16px; }
+    .status-row { display: flex; align-items: center; gap: 15px; padding: 16px; border: 1px solid var(--border); background: rgba(5,12,23,.28); border-radius: 13px; }
+    .status-lamp { width: 48px; height: 48px; flex: 0 0 auto; border-radius: 50%; background: var(--green); box-shadow: 0 0 22px color-mix(in srgb, var(--green) 45%, transparent); border: 5px solid rgba(255,255,255,.1); }
+    .status-name { font-size: 22px; font-weight: 850; letter-spacing: .04em; }
+    .status-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .status-tag { margin-left: auto; border-radius: 999px; padding: 7px 10px; background: rgba(34,197,94,.12); color: var(--green); font-size: 11px; font-weight: 850; border: 1px solid rgba(34,197,94,.25); }
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 15px; }
+    button { border: 1px solid var(--border); background: #1a2a42; color: var(--text); padding: 10px 13px; border-radius: 10px; font-weight: 750; cursor: pointer; transition: .15s; }
+    button:hover { transform: translateY(-1px); filter: brightness(1.12); }
+    button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .btn-green { border-color: #267b4b; background: #143624; }
+    .btn-yellow { border-color: #806b1b; background: #393115; }
+    .btn-red { border-color: #8e3333; background: #3a1b23; }
+    .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .switch-row:last-child { border-bottom: 0; }
+    .chip { border-radius: 7px; padding: 5px 8px; font-size: 11px; font-weight: 800; }
+    .on { background: rgba(239,68,68,.15); color: #ff8b8b; }
+    .off { background: rgba(148,163,184,.12); color: #b3c0d2; }
+    .chart-card { margin-top: 14px; }
+    .chart { height: 180px; width: 100%; display: block; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .log { display: grid; gap: 9px; }
+    .log-item { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; color: var(--muted); }
+    .log-item strong { color: var(--text); }
+    .log-mark { width: 7px; height: 7px; border-radius: 50%; margin-top: 4px; flex: 0 0 auto; }
+    footer { color: #71839d; font-size: 11px; text-align: center; margin-top: 24px; line-height: 1.7; }
+    @media (max-width: 850px) { .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } .main-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .wrap { padding: 20px 13px 30px; } .grid { gap: 9px; } .card { padding: 14px; } .value { font-size: 27px; } .demo-pill { white-space: normal; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div>
+        <div class="eyebrow">Industrial IoT · Project Demonstration</div>
+        <h1>Machine Health Monitor</h1>
+        <p class="sub">A simulated monitoring dashboard for temperature, vibration and current, with Normal, Warning and Critical machine states.</p>
+      </div>
+      <div class="demo-pill"><span class="dot"></span> SOFTWARE SIMULATION</div>
+    </header>
+
+    <div class="banner"><strong>Demo notice:</strong> These values are generated by this webpage for demonstration only. They are <strong>not real sensor readings</strong> and are not connected to an ESP32 or physical machine.</div>
+
+    <section class="grid" aria-label="Simulated sensor readings">
+      <article class="card">
+        <div class="metric-head"><span>Temperature</span><span class="metric-icon">♨</span></div>
+        <div class="value"><span id="temp">30.0</span><span class="unit"> °C</span></div>
+        <div class="hint">Warning above 35 °C · Critical above 50 °C</div>
+      </article>
+      <article class="card">
+        <div class="metric-head"><span>Vibration index</span><span class="metric-icon">〰</span></div>
+        <div class="value" id="vibration">18000</div>
+        <div class="hint">Warning above 25,000 · Critical above 40,000</div>
+      </article>
+      <article class="card">
+        <div class="metric-head"><span>Current (simulated)</span><span class="metric-icon">ϟ</span></div>
+        <div class="value" id="current">1500</div>
+        <div class="hint">Warning above 2,000 · Critical above 3,000</div>
+      </article>
+      <article class="card">
+        <div class="metric-head"><span>Last update</span><span class="metric-icon">◷</span></div>
+        <div class="value" style="font-size:23px" id="updated">--:--:--</div>
+        <div class="hint">Auto-updates every 3 seconds</div>
+      </article>
+    </section>
+
+    <section class="main-grid">
+      <article class="card">
+        <h2 class="section-title">Machine status <span id="statusTag" class="status-tag">NORMAL</span></h2>
+        <div class="status-row">
+          <div id="statusLamp" class="status-lamp"></div>
+          <div>
+            <div id="statusName" class="status-name">NORMAL</div>
+            <div id="statusDesc" class="status-desc">Readings are within the demo's normal range.</div>
+          </div>
+        </div>
+        <div class="actions" aria-label="Demo controls">
+          <button class="btn-green" onclick="setScenario('NORMAL')">Simulate Normal</button>
+          <button class="btn-yellow" onclick="setScenario('WARNING')">Simulate Warning</button>
+          <button class="btn-red" onclick="setScenario('CRITICAL')">Simulate Critical</button>
+          <button onclick="toggleAuto()" id="autoButton">Pause auto-update</button>
+        </div>
+        <p class="hint" style="margin:13px 0 0">Use these controls during your presentation to demonstrate each risk state.</p>
+      </article>
+
+      <article class="card">
+        <h2 class="section-title">Response indicators <span class="hint">Simulated outputs</span></h2>
+        <div class="switch-row"><span>Green LED · Normal</span><span id="greenLed" class="chip off">OFF</span></div>
+        <div class="switch-row"><span>Yellow LED · Warning</span><span id="yellowLed" class="chip off">OFF</span></div>
+        <div class="switch-row"><span>Red LED · Critical</span><span id="redLed" class="chip off">OFF</span></div>
+        <div class="switch-row"><span>Buzzer</span><span id="buzzer" class="chip off">OFF</span></div>
+        <div class="switch-row"><span>Relay command</span><span id="relay" class="chip off">NORMAL / ON</span></div>
+      </article>
+    </section>
+
+    <section class="card chart-card">
+      <h2 class="section-title">Recent simulated readings <span class="hint">Last 20 samples</span></h2>
+      <canvas id="chart" class="chart" aria-label="Chart of simulated temperature readings"></canvas>
+      <div class="chart-legend"><span><i class="legend-dot" style="background:#fb923c"></i>Temperature (°C)</span><span><i class="legend-dot" style="background:#60a5fa"></i>Scaled vibration</span><span><i class="legend-dot" style="background:#4ade80"></i>Scaled current</span></div>
+    </section>
+
+    <section class="card chart-card">
+      <h2 class="section-title">Event log <span class="hint">This session</span></h2>
+      <div class="log" id="log"></div>
+    </section>
+
+    <footer>
+      Industrial Machine Monitoring System · Software-only demonstration<br>
+      Thresholds are based on the prototype sketch and are for demonstration, not certified industrial safety limits.
+    </footer>
+  </main>
+
+  <script>
+    const state = { scenario: 'NORMAL', auto: true, samples: [], timer: null };
+    const colors = { NORMAL: '#22c55e', WARNING: '#facc15', CRITICAL: '#f04444' };
+    const descriptions = {
+      NORMAL: 'Readings are within the demo normal range.',
+      WARNING: 'One or more readings crossed the warning threshold. Stay alert.',
+      CRITICAL: 'Critical threshold crossed. Simulated buzzer alert and relay command activated.'
+    };
+    const $ = id => document.getElementById(id);
+
+    function valuesFor(scenario) {
+      if (scenario === 'WARNING') return { temp: rand(36, 45), vibration: rand(26000, 35000), current: rand(2100, 2700) };
+      if (scenario === 'CRITICAL') return { temp: rand(51, 58), vibration: rand(41000, 48000), current: rand(3100, 3600) };
+      return { temp: rand(25, 33), vibration: rand(10000, 22000), current: rand(700, 1800) };
+    }
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function setScenario(scenario) {
+      state.scenario = scenario;
+      updateDashboard(valuesFor(scenario), scenario);
+      addLog('Scenario selected: ' + scenario, colors[scenario]);
+    }
+    function updateDashboard(v, scenario) {
+      $('temp').textContent = Number(v.temp).toFixed(1);
+      $('vibration').textContent = v.vibration.toLocaleString('en-IN');
+      $('current').textContent = v.current.toLocaleString('en-IN');
+      $('updated').textContent = new Date().toLocaleTimeString();
+      $('statusName').textContent = scenario;
+      $('statusTag').textContent = scenario;
+      $('statusDesc').textContent = descriptions[scenario];
+      $('statusLamp').style.background = colors[scenario];
+      $('statusLamp').style.boxShadow = `0 0 22px ${colors[scenario]}70`;
+      $('statusTag').style.color = colors[scenario];
+      $('statusTag').style.borderColor = colors[scenario] + '55';
+      $('statusTag').style.background = colors[scenario] + '18';
+      setChip('greenLed', scenario === 'NORMAL', 'ON', 'OFF');
+      setChip('yellowLed', scenario === 'WARNING', 'ON', 'OFF');
+      setChip('redLed', scenario === 'CRITICAL', 'ON', 'OFF');
+      setChip('buzzer', scenario === 'CRITICAL', 'ON', 'OFF');
+      setChip('relay', scenario === 'CRITICAL', 'TRIP / OFF', 'NORMAL / ON');
+      state.samples.push({ temp: Number(v.temp), vibration: v.vibration / 1000, current: v.current / 100 });
+      if (state.samples.length > 20) state.samples.shift();
+      drawChart();
+    }
+    function setChip(id, active, onText, offText) {
+      const el = $(id); el.textContent = active ? onText : offText;
+      el.className = 'chip ' + (active ? 'on' : 'off');
+    }
+    function addLog(message, color) {
+      const row = document.createElement('div'); row.className = 'log-item';
+      const mark = document.createElement('span'); mark.className = 'log-mark'; mark.style.background = color;
+      const text = document.createElement('span');
+      const time = new Date().toLocaleTimeString();
+      text.innerHTML = `<strong>${time}</strong> — ${message}`;
+      row.append(mark, text); $('log').prepend(row);
+      while ($('log').children.length > 5) $('log').lastElementChild.remove();
+    }
+    function toggleAuto() {
+      state.auto = !state.auto;
+      $('autoButton').textContent = state.auto ? 'Pause auto-update' : 'Resume auto-update';
+      addLog(state.auto ? 'Automatic simulation resumed' : 'Automatic simulation paused', '#60a5fa');
+      if (state.auto) scheduleNext(); else clearTimeout(state.timer);
+    }
+    function scheduleNext() {
+      clearTimeout(state.timer);
+      if (!state.auto) return;
+      state.timer = setTimeout(() => {
+        // The auto-cycle deliberately rotates through the three demo states.
+        const order = ['NORMAL', 'WARNING', 'CRITICAL'];
+        const next = order[(order.indexOf(state.scenario) + 1) % order.length];
+        state.scenario = next;
+        updateDashboard(valuesFor(next), next);
+        addLog('Automatic simulated update: ' + next, colors[next]);
+        scheduleNext();
+      }, 3000);
+    }
+    function drawChart() {
+      const canvas = $('chart'), rect = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(300, rect.width * dpr); canvas.height = 180 * dpr;
+      const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+      const w = canvas.width / dpr, h = 180, left = 30, right = 8, top = 12, bottom = 25;
+      ctx.clearRect(0, 0, w, h);
+      ctx.font = '10px system-ui'; ctx.fillStyle = '#8fa2bc'; ctx.strokeStyle = '#293a52'; ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) {
+        const y = top + (h - top - bottom) * i / 3;
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(w-right, y); ctx.stroke();
+      }
+      if (state.samples.length < 2) return;
+      const series = [
+        { key: 'temp', color: '#fb923c', scale: 60 },
+        { key: 'vibration', color: '#60a5fa', scale: 50 },
+        { key: 'current', color: '#4ade80', scale: 40 }
+      ];
+      series.forEach(s => {
+        ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.beginPath();
+        state.samples.forEach((p, i) => {
+          const x = left + i * (w-left-right) / 19;
+          const y = h-bottom - Math.min(p[s.key] / s.scale, 1) * (h-top-bottom);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+      ctx.fillStyle = '#8fa2bc'; ctx.fillText('older', left, h-6); ctx.fillText('latest', w-40, h-6);
+    }
+    window.addEventListener('resize', drawChart);
+    setScenario('NORMAL');
+    addLog('Dashboard simulation started', colors.NORMAL);
+    scheduleNext();
+  </script>
+</body>
+</html>
